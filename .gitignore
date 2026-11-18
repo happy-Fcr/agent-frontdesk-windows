@@ -4,6 +4,7 @@ uploads/
 .certs/
 # What the person chose in the console (which agents are switched on)
 .frontdesk.json
+.frontdesk-runtime/
 
 # Local design-review captures of real chats, local tooling
 .taste-skill/

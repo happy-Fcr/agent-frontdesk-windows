@@ -11,7 +11,7 @@ import type { HubMessage } from '../src/server/core/event-hub.js';
 const answer = (body: unknown, { ok = true, status = 200 } = {}): Response => fake<Response>({ ok, status, json: async () => body });
 // The JSON body a fetch was given.
 const bodyOf = (options: RequestInit | undefined): unknown => JSON.parse(String(options?.body));
-import { CodexBridge, CodexRun } from '../src/server/codex-bridge.js';
+import { CodexBridge, CodexRun, codexNewUrl } from '../src/server/codex-bridge.js';
 import { bindEvents } from '../src/server/core/presentation.js';
 import { SessionObserver } from '../src/server/services/session-observer.js';
 import { PluginHost } from '../src/server/core/plugin-host.js';
@@ -23,6 +23,16 @@ import path from 'node:path';
 import __node_sqlite from 'node:sqlite';
 import * as __services_sqlite_reader from '../src/server/services/sqlite-reader.js';
 import * as __antigravity_bridge from '../src/server/antigravity-bridge.js';
+
+test('Codex Windows new-chat deep links keep the prompt and desktop mode', () => {
+  const work = new URL(codexNewUrl('第一行\n& second', 'work'));
+  assert.equal(work.protocol, 'codex:');
+  assert.equal(work.host, 'threads');
+  assert.equal(work.pathname, '/new');
+  assert.equal(work.searchParams.get('prompt'), '第一行\n& second');
+  assert.equal(work.searchParams.get('mode'), 'work');
+  assert.equal(new URL(codexNewUrl('hello', 'chat')).searchParams.get('mode'), 'chat');
+});
 import * as __core_presentation from '../src/server/core/presentation.js';
 import __node_url from 'node:url';
 import * as __claude_bridge from '../src/server/claude-bridge.js';

@@ -1,0 +1,14 @@
+{
+  "label": "Claude 桌面版",
+  "processNames": ["Claude"],
+  "signedOutMarkers": ["登录或创建账户", "开始使用", "Continue with Google", "Log in to Claude", "您的账户无法使用 Claude 的回复。", "在您完成账户验证之前，部分功能不可用。"],
+  "composer": { "classContains": "ProseMirror" },
+  "composerPlaceholders": ["Reply to Claude", "Message Claude", "输入您发送给 Claude 的提示词"],
+  "send": { "name": ["Send Message", "Send message", "发送消息"] },
+  "stop": { "name": ["Stop Response", "Stop response"] },
+  "new": { "name": ["New chat", "Start new chat", "新建"] },
+  "sessions": [{ "role": "Hyperlink", "classContains": "conversation" }],
+  "sessionSkip": ["New chat", "Start new chat"],
+  "waitSeconds": 180,
+  "replySkip": ["^New chat$", "^Send Message$", "^Stop Response$"]
+}

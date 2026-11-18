@@ -1,0 +1,22 @@
+{
+  "label": "豆包桌面版",
+  "processNames": ["Doubao"],
+  "signedOutMarkers": ["登录豆包"],
+  "composer": { "classContains": "tiptap ProseMirror" },
+  "composerPlaceholders": ["发消息或按住空格说话..."],
+  "send": { "id": "flow-end-msg-send" },
+  "stop": { "name": ["停止生成", "停止回复"] },
+  "new": { "name": ["新建标签页", "新对话 Ctrl Shift K"] },
+  "sessions": [{ "role": "Hyperlink", "classContains": "conversation-item" }],
+  "history": {
+    "kind": "rawVirtual",
+    "parent": { "role": "Group", "name": ["doc_editor"], "classContains": "flex items-center flex-col" },
+    "containerClass": "list_items",
+    "assistantMarker": "朗读",
+    "assistantMaxX": 650
+  },
+  "sessionTitleStrip": " (归档对话 )?更多$",
+  "sessionSkip": ["对话", "工作", "新建标签页"],
+  "waitSeconds": 180,
+  "replySkip": ["^通知", "^Notifications", "^复制", "^点赞", "^点踩"]
+}

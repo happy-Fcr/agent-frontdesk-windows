@@ -3,7 +3,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { CodexBridge } from '../codex-bridge.js';
 import { CodexChatgpt, type ChatgptConversation, type ChatgptProject } from '../services/codex-chatgpt.js';
-import { UnifiedSession } from '../types.js';
+import { EngineEvents, UnifiedSession } from '../types.js';
 import { ChatMode, CHAT_CAPABILITIES } from '../services/desktop-chat.js';
 import { appPlaces, firstExisting, readAsarFile } from '../services/app-assets.js';
 import type { Character, PluginAbout, PluginSetup } from '../../shared/contract.js';
@@ -20,6 +20,7 @@ export const about: PluginAbout = { ...IDENTITY,
   appIcon: config => path.join(path.dirname(config.chatgptAppAsar || DEFAULT_ASAR), 'electron.icns'),
   detect: config => firstExisting(appPlaces(config.chatgptAppAsar || DEFAULT_ASAR)) };
 export const setup: PluginSetup = ({ config, registerEngine, registerAsset }) => {
+  const windows = process.platform === 'win32';
   const archive = config.chatgptAppAsar || DEFAULT_ASAR;
   let sprite: Buffer | null | undefined;
   const loadSprite = (): Buffer | null => {
@@ -37,6 +38,23 @@ export const setup: PluginSetup = ({ config, registerEngine, registerAsset }) =>
   const remote = (id: string) => chats.get(id);
   const asSession = (item: { id: string; title: string; updatedAt: string }, rank: number) => new UnifiedSession({ id: item.id, engine: 'codex', title: item.title, updatedAt: item.updatedAt, sendBlocked: ELSEWHERE,
     metadata: { space: 'chatgpt', contentUnavailable: ELSEWHERE, group: null, bySpace: { chatgpt: { rank } } } });
+  const windowsUnavailable = (message: string): EngineEvents => {
+    const emitter = new EngineEvents(); queueMicrotask(() => emitter.emit('error', new Error(message))); return emitter;
+  };
+  const createWindowsChat = async (input: NonNullable<Parameters<typeof chats.create>[0]> = {}) => {
+    if (!input.prompt) throw Object.assign(new Error('请输入首条消息'), { status: 400 });
+    if (input.attachments?.length) throw Object.assign(new Error('Windows 版的新建协议暂时不能带附件，请在桌面版里添加'), { status: 409 });
+    if (input.projectId || input.cwd) throw Object.assign(new Error('Windows 版的新建协议暂时不能指定 ChatGPT 项目，请从“聊天”新建'), { status: 409 });
+    if (input.model || input.reasoningEffort || input.permissionMode) throw Object.assign(new Error('Windows 版的新建协议会使用桌面版当前设置'), { status: 409 });
+    const known = new Set(mode().conversations.map(item => item.id));
+    await bridge.openNewInDesktop(input.prompt, 'chat');
+    for (let tries = 0; tries < 60; tries++) {
+      const fresh = mode().conversations.filter(item => !known.has(item.id));
+      if (fresh.length) return { id: fresh[0]!.id, title: fresh[0]!.title };
+      await new Promise(resolve => setTimeout(resolve, 500));
+    }
+    throw Object.assign(new Error('消息已交给 ChatGPT 桌面版，但还没在聊天列表里看到新对话，请到桌面版里查看'), { status: 504 });
+  };
   // Codex threads in both modes: under their project in "Codex", in Recents (by recency) in "ChatGPT".
   // Both modes order them as the desktop's Recents does (its catalog's recency), not by the thread's
   // own update time, so the console's "最近" matches the desktop's.
@@ -67,7 +85,7 @@ export const setup: PluginSetup = ({ config, registerEngine, registerAsset }) =>
     ],
     capabilities: { attachments: true, cwd: true, models: true, reasoning: true, interrupt: true, approvals: true, steer: true, createRequiresPrompt: true,
       // The New chat page's own model and effort, read from it: a new chat's menus start on them.
-      newSettings: true, openFile: true, showInDesktop: true },
+      ...(!windows ? { newSettings: true } : {}), openFile: true, showInDesktop: true },
     // How the Codex desktop writes a conversation (plugin-contract.md, "对话的样子"): the work folds
     // under "Worked for …" ("Working for …" live, "You stopped after …"), tool runs are named by kind,
     // code blocks have a header, a turn's edits end in a diff card, and no times are shown.
@@ -77,15 +95,15 @@ export const setup: PluginSetup = ({ config, registerEngine, registerAsset }) =>
     list: listAll,
     projects: async () => [...await bridge.listProjects(), ...mode().projects.map(project => ({ ...project, space: 'chatgpt' }))],
     // A ChatGPT conversation: its messages read from the desktop's window.
-    read: id => { const item = remote(id); return item ? chats.read(asSession(item, 0), item.updatedAt) : bridge.getThread(id); },
+    read: id => { const item = remote(id); return item ? (windows ? { session: asSession(item, 0), turns: [] } : chats.read(asSession(item, 0), item.updatedAt)) : bridge.getThread(id); },
     blocked: () => '',
     // A new conversation in the ChatGPT mode (input.space), in one of its projects or in none.
-    create: input => (input.space === 'chatgpt' ? chats.create(input, mode().projects.find(project => project.id === input.projectId) || null) : bridge.create(input)),
+    create: input => (input.space === 'chatgpt' ? (windows ? createWindowsChat(input) : chats.create(input, mode().projects.find(project => project.id === input.projectId) || null)) : bridge.create(input)),
     observe: id => (remote(id) ? chats.observe(id) : bridge.observe(id)),
-    newSettings: () => bridge.newSettings(), keepWarm: () => bridge.ui.keepWarm?.(),
-    send: (id, input) => (remote(id) ? chats.send(id, input) : bridge.startTurn({ ...input, threadId: id })),
+    ...(!windows ? { newSettings: () => bridge.newSettings(), keepWarm: () => bridge.ui.keepWarm?.() } : {}),
+    send: (id, input) => (remote(id) ? (windows ? windowsUnavailable('Windows 版目前只能从工作台新建 ChatGPT 对话；继续旧对话请在桌面版里发送') : chats.send(id, input)) : bridge.startTurn({ ...input, threadId: id })),
     openFile: (id, file) => bridge.openFile(id, file),
-    show: id => (remote(id) ? chats.show(id) : bridge.show(id)),
+    show: id => (remote(id) ? (windows ? Promise.reject(Object.assign(new Error('请在 ChatGPT 桌面版里打开这条云对话'), { status: 501 })) : chats.show(id)) : bridge.show(id)),
     interrupt: (id, emitter) => { if (remote(id)) throw Object.assign(new Error('ChatGPT 对话的回复请在 Codex 桌面版里停止'), { status: 501 }); return bridge.interruptTurn(id, emitter); },
     // The emitter the console passes is not needed: a steered message goes to the window that owns the thread.
     steer: (id, input) => { if (remote(id)) throw Object.assign(new Error('ChatGPT 对话在回复时不能插话，消息已排队，等这条回复结束再发'), { fallback: 'queue' }); return bridge.steerTurn(id, input); },

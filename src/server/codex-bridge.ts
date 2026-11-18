@@ -555,6 +555,21 @@ class CodexBridge extends EventEmitter {
     function refuse(reason: string | undefined): never { throw Object.assign(new Error(reason), { status: 409 }); }
     if (!input.prompt && !(input.attachments || []).length) throw Object.assign(new Error('请输入首条消息'), { status: 400 });
     const state = await this.ui.check();
+    if (process.platform === 'win32' && !state.available && state.reason === '桌面代发只支持 macOS') {
+      if (input.cwd) refuse('Windows 版的新建协议暂时不能指定 Codex 项目，请先在桌面版项目里新建，或从“聊天”新建');
+      if (input.model || input.reasoningEffort || input.permissionMode) refuse('Windows 版的新建协议会使用桌面版当前设置，请不要在工作台为首条消息另选模型或权限');
+      await this.start();
+      const message = withAttachments(input.prompt, input.attachments);
+      const known = new Set(list(get(await this.send('thread/list', { limit: 50 }), 'result', 'data')).map(thread => get(thread, 'id')));
+      await this.openNewInDesktop(message, 'work');
+      const thread = await this.newDesktopThread(known, message);
+      if (!thread) throw Object.assign(new Error('消息已交给 Codex 桌面版，但还没在聊天列表里看到新对话，请到桌面版里查看'), { status: 504 });
+      const id = text(get(thread, 'id'));
+      const emitter = new CodexRun();
+      this.starts.set(id, emitter);
+      this.follow(id, { prompt: message, known: new Set(), emitter });
+      return { id, cwd: text(get(thread, 'cwd') || ''), started: true };
+    }
     if (!state.available) refuse(state.reason);
     await this.start();
     // The project is picked by its name in the desktop's project menu; no cwd = outside every project.
@@ -579,6 +594,13 @@ class CodexBridge extends EventEmitter {
     this.starts.set(id, emitter);
     this.follow(id, { prompt: message, known: new Set(), emitter });
     return { id, cwd: text(get(thread, 'cwd') || input.cwd || ''), started: true };
+  }
+  async openNewInDesktop(prompt: string, mode: 'chat' | 'work' | 'codex'): Promise<void> {
+    const url = codexNewUrl(prompt, mode);
+    const command = process.platform === 'win32' ? 'explorer.exe' : '/usr/bin/open';
+    const args = process.platform === 'win32' ? [url] : ['-g', url];
+    await new Promise<void>((resolve, reject) => execFile(command, args, { timeout: 15000, windowsHide: true }, err => err
+      ? reject(Object.assign(new Error('没能让 Codex 桌面版新建聊天'), { cause: err })) : resolve()));
   }
   // The chat the desktop just made: a thread that was not listed before, opened with this message.
   async newDesktopThread(known: ReadonlySet<unknown>, message: string, timeoutMs = 25000): Promise<unknown> {
@@ -627,7 +649,10 @@ class CodexBridge extends EventEmitter {
   // Asks the desktop to run what the thread has queued. `open -g` keeps it in the background;
   // a desktop that is not running starts just to do this.
   wake(threadId: string): Promise<void> {
-    return new Promise((resolve, reject) => execFile('/usr/bin/open', ['-g', `codex://threads/wake/${threadId}`], { timeout: 15000 }, err => err ? reject(Object.assign(new Error('没能唤起 Codex 桌面版来处理这条消息'), { cause: err })) : resolve()));
+    const url = `codex://threads/wake/${threadId}`;
+    const command = process.platform === 'win32' ? 'explorer.exe' : '/usr/bin/open';
+    const args = process.platform === 'win32' ? [url] : ['-g', url];
+    return new Promise((resolve, reject) => execFile(command, args, { timeout: 15000, windowsHide: true }, err => err ? reject(Object.assign(new Error('没能唤起 Codex 桌面版来处理这条消息'), { cause: err })) : resolve()));
   }
   // Follows the desktop's record of the thread: the first turn not in `known` that carries this
   // message, item by item, until the record says how it ended.
@@ -731,4 +756,11 @@ class CodexBridge extends EventEmitter {
   }
 }
 
-export { CodexBridge, CodexRun, shownSettings, askCard, composerText };
+function codexNewUrl(prompt: string, mode: 'chat' | 'work' | 'codex'): string {
+  const url = new URL('codex://threads/new');
+  url.searchParams.set('prompt', prompt);
+  url.searchParams.set('mode', mode);
+  return url.toString();
+}
+
+export { CodexBridge, CodexRun, shownSettings, askCard, composerText, codexNewUrl };

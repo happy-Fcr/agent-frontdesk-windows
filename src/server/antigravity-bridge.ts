@@ -86,7 +86,9 @@ function workspaceOf(uris: unknown): string {
   try {
     const first = list(parseJson(String(uris || '[]')))[0];
     if (typeof first !== 'string') return '';
-    return first.startsWith('file://') ? fileURLToPath(first) : first || '';
+    if (!first.startsWith('file://')) return first || '';
+    try { return fileURLToPath(first); }
+    catch { return decodeURIComponent(new URL(first).pathname); }
   } catch { return ''; }
 }
 

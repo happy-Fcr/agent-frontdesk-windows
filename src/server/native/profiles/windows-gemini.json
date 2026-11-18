@@ -1,0 +1,19 @@
+{
+  "label": "Gemini 桌面版",
+  "processNames": ["Gemini"],
+  "signedOutMarkers": ["Sign in", "登录 Gemini"],
+  "composer": { "role": "Edit", "name": ["Enter a prompt for Gemini"] },
+  "composerPlaceholders": ["Enter a prompt for Gemini"],
+  "send": { "name": ["Send message"] },
+  "stop": { "name": ["Stop response", "Stop generating"] },
+  "new": { "role": "Hyperlink", "name": ["New chat"], "classContains": "gem-nav-list-item" },
+  "sessions": [{ "role": "Hyperlink", "classContains": "gem-nav-list-item" }],
+  "history": {
+    "kind": "controls",
+    "user": { "role": "Group", "classContains": "user-query-bubble-with-background" },
+    "assistant": { "role": "Group", "classContains": "markdown markdown-main-panel" }
+  },
+  "sessionSkip": ["New chat", "Library", "Images", "Scheduled", "Daily brief", "New notebook", "Google Account:*"],
+  "waitSeconds": 180,
+  "replySkip": ["^New chat$", "^Search chats$", "^Send message$", "^Open mode picker", "^Turn on temporary chat", "^More options for"]
+}

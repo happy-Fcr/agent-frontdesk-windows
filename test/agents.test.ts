@@ -176,11 +176,11 @@ test('a plugin that fails when switched on answers with its reason and stays off
   assert.equal(fs.existsSync(settingsFile), false, 'a choice that did not take is not kept');
 });
 
-test('the three built-in plugins say who they are without being set up', async () => {
+test('the built-in plugins say who they are without being set up', async () => {
   const host = new PluginHost({ config: { ...loadConfig(), claudeAppAsar: '/nowhere/Claude.app/Contents/Resources/app.asar', claudeDesktopHome: '/nowhere/claude', chatgptAppAsar: os.tmpdir() } });
   await host.discover(loadConfig().pluginDir);
   const catalog = await host.catalog();
-  assert.deepEqual(catalog.map(item => item.id), ['codex', 'claude', 'antigravity'], 'in the rail\'s order');
+  assert.deepEqual(catalog.map(item => item.id), ['codex', 'claude-chat', 'claude', 'antigravity', 'doubao', 'gemini'], 'in the rail\'s order');
   assert.equal(host.engines.size, 0, 'none was set up');
   for (const item of catalog) { assert.ok(item.label && item.accent, item.id); assert.equal(typeof item.installed, 'boolean', item.id); }
   // Found or not by what is on the machine: a path that is there, a path that is not.

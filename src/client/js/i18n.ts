@@ -240,6 +240,21 @@ const REPORTS: Record<string, string> = {
   'ChatGPT 对话在回复时不能插话，消息已排队，等这条回复结束再发': "A ChatGPT conversation can't take a message while it's replying. Your message is queued for when the reply ends.",
   '缺少会话标题或消息': 'The chat title or the message is missing',
   '没能在 Codex 桌面版的侧栏里找到这个聊天': "Couldn't find this chat in Codex's desktop sidebar", '在 Codex 桌面版里选了不在项目里，但项目没有切换过去': "Picked no project in Codex's desktop app, but it didn't switch",
+  // Windows desktop adapters
+  'Windows 版的新建协议暂时不能指定 Codex 项目，请先在桌面版项目里新建，或从“聊天”新建': "The Windows new-chat link can't choose a Codex project yet. Start it from Chats, or create it inside the project on desktop.",
+  'Windows 版的新建协议会使用桌面版当前设置，请不要在工作台为首条消息另选模型或权限': "Windows new chats use the desktop app's current settings. Don't choose a different model or permissions for the first message here.",
+  '消息已交给 Codex 桌面版，但还没在聊天列表里看到新对话，请到桌面版里查看': "The message was handed to Codex desktop, but the new chat hasn't appeared in its list yet. Check the desktop app.",
+  '没能让 Codex 桌面版新建聊天': "Couldn't ask Codex desktop to start a new chat",
+  'Windows 版的新建协议暂时不能带附件，请在桌面版里添加': "The Windows new-chat link can't include attachments yet. Add them in the desktop app.",
+  'Windows 版的新建协议暂时不能指定 ChatGPT 项目，请从“聊天”新建': "The Windows new-chat link can't choose a ChatGPT project yet. Start it from Chats.",
+  'Windows 版的新建协议会使用桌面版当前设置': "Windows new chats use the desktop app's current settings.",
+  '消息已交给 ChatGPT 桌面版，但还没在聊天列表里看到新对话，请到桌面版里查看': "The message was handed to ChatGPT desktop, but the new chat hasn't appeared in its list yet. Check the desktop app.",
+  'Windows 版目前只能从工作台新建 ChatGPT 对话；继续旧对话请在桌面版里发送': "On Windows, Frontdesk can start a ChatGPT conversation, but continuing an existing cloud chat still happens in the desktop app.",
+  '请在 ChatGPT 桌面版里打开这条云对话': "Open this cloud conversation in the ChatGPT desktop app.",
+  'Claude Windows 桌面版聊天': 'Claude Windows desktop chats', '豆包': 'Doubao', '豆包 Windows 桌面版': 'Doubao for Windows', '豆包桌面版': "Doubao's desktop app",
+  'Gemini Windows 桌面版': 'Gemini for Windows', 'Gemini 桌面版': "Gemini's desktop app",
+  '较早对话仍保存在桌面版中；Windows 工作台目前只显示它代发后读到的回复': 'Older messages remain in the desktop app. On Windows, Frontdesk currently shows only replies it observed after sending.',
+  '当前对话': 'Current chat', '新对话': 'New chat',
 };
 const REPORT_PATTERNS: Array<[RegExp, (match: RegExpExecArray) => string]> = [
   // The sign-in command is the one that works on that machine (claude-bridge.ts, loginCommand).
