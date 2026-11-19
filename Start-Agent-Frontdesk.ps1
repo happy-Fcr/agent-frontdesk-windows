@@ -24,15 +24,30 @@ if (-not (Get-Process -Name 'Gemini' -ErrorAction SilentlyContinue)) {
   if ($gemini) { Start-Process $gemini.FullName }
 }
 
-$running = $false
-try { $running = (Invoke-WebRequest -UseBasicParsing -Uri 'http://127.0.0.1:4100/api/engines' -TimeoutSec 1).StatusCode -eq 200 } catch {}
+function Test-Frontdesk {
+  try { return (Invoke-WebRequest -UseBasicParsing -Uri 'http://127.0.0.1:4100/api/engines' -TimeoutSec 2).StatusCode -eq 200 } catch { return $false }
+}
+function Wait-Frontdesk([int]$attempts) {
+  for ($i=0; $i -lt $attempts; $i++) {
+    if (Test-Frontdesk) { return $true }
+    Start-Sleep -Milliseconds 500
+  }
+  return $false
+}
+
+$running = Test-Frontdesk
 if (-not $running) {
   $task = Get-ScheduledTask -TaskName 'Agent Frontdesk Server' -ErrorAction SilentlyContinue
   if ($task) { Start-ScheduledTask -TaskName 'Agent Frontdesk Server' }
-  else { Start-Process -FilePath 'node.exe' -ArgumentList @('dist/server/server.js') -WorkingDirectory $project -WindowStyle Hidden -RedirectStandardOutput (Join-Path $runtime 'server.log') -RedirectStandardError (Join-Path $runtime 'server-error.log') }
-  for ($i=0; $i -lt 30; $i++) {
-    Start-Sleep -Milliseconds 300
-    try { if ((Invoke-WebRequest -UseBasicParsing -Uri 'http://127.0.0.1:4100/api/engines' -TimeoutSec 1).StatusCode -eq 200) { break } } catch {}
+  $running = Wait-Frontdesk 40
+  if (-not $running) {
+    Start-Process -FilePath 'node.exe' -ArgumentList @('dist/server/server.js') -WorkingDirectory $project -WindowStyle Hidden -RedirectStandardOutput (Join-Path $runtime 'server.log') -RedirectStandardError (Join-Path $runtime 'server-error.log')
+    $running = Wait-Frontdesk 40
   }
 }
-Start-Process 'http://127.0.0.1:4100'
+if ($running) {
+  Start-Process 'http://127.0.0.1:4100'
+} else {
+  Add-Type -AssemblyName PresentationFramework
+  [System.Windows.MessageBox]::Show('Agent Frontdesk could not start. Check .frontdesk-runtime\server-error.log.', 'Agent Frontdesk') | Out-Null
+}
