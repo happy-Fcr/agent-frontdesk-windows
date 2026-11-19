@@ -81,7 +81,7 @@ class WindowsWebChatBridge {
     const nativeId = this.nativeIds.get(id) || id;
     if (this.id === 'doubao') {
       const opened = await this.run('show', { session: nativeId, timeout: 45_000 });
-      if (!opened.ok) throw new Error(opened.error || '豆包没有打开这个对话');
+      if (!opened.ok) throw new Error(opened.error || 'Doubao did not open this chat');
       await new Promise(resolve => setTimeout(resolve, 1_500));
     }
     const result = await this.run('read', { session: this.id === 'doubao' ? 'current' : nativeId, timeout: 90_000 });
