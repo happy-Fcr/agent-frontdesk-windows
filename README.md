@@ -7,9 +7,11 @@
 **One web page for every desktop AI on your computer.**<br>
 To add a new one, send it a prompt and it connects itself.
 
-[![CI](https://github.com/Phz-06/agent-frontdesk/actions/workflows/ci.yml/badge.svg)](https://github.com/Phz-06/agent-frontdesk/actions/workflows/ci.yml)
+**Windows desktop edition:** integrates the Windows apps for ChatGPT/Codex, Claude, Doubao, and Gemini.
+
+[![CI](https://github.com/happy-Fcr/agent-frontdesk-windows/actions/workflows/ci.yml/badge.svg)](https://github.com/happy-Fcr/agent-frontdesk-windows/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-![Platform: macOS](https://img.shields.io/badge/platform-macOS-lightgrey.svg)
+![Platform: Windows](https://img.shields.io/badge/platform-Windows-0078D4.svg)
 ![Node 22.16+](https://img.shields.io/badge/node-%E2%89%A5%2022.16-brightgreen.svg)
 [![PRs welcome](https://img.shields.io/badge/PRs-welcome-orange.svg)](CONTRIBUTING.md)
 

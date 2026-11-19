@@ -7,9 +7,11 @@
 **一个网页，用上你电脑里所有的桌面版 AI。**<br>
 想加新的 AI，把一段提示词发给它，它自己接进来。
 
-[![CI](https://github.com/Phz-06/agent-frontdesk/actions/workflows/ci.yml/badge.svg)](https://github.com/Phz-06/agent-frontdesk/actions/workflows/ci.yml)
+**这是 Windows 桌面端版本：**已接入 Windows 上的 ChatGPT/Codex、Claude、豆包和 Gemini 桌面应用。
+
+[![CI](https://github.com/happy-Fcr/agent-frontdesk-windows/actions/workflows/ci.yml/badge.svg)](https://github.com/happy-Fcr/agent-frontdesk-windows/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-![Platform: macOS](https://img.shields.io/badge/platform-macOS-lightgrey.svg)
+![Platform: Windows](https://img.shields.io/badge/platform-Windows-0078D4.svg)
 ![Node 22.16+](https://img.shields.io/badge/node-%E2%89%A5%2022.16-brightgreen.svg)
 [![PRs welcome](https://img.shields.io/badge/PRs-welcome-orange.svg)](CONTRIBUTING.md)
 
