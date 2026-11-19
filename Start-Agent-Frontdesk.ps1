@@ -41,7 +41,7 @@ if (-not $running) {
   if ($task) { Start-ScheduledTask -TaskName 'Agent Frontdesk Server' }
   $running = Wait-Frontdesk 40
   if (-not $running) {
-    Start-Process -FilePath 'node.exe' -ArgumentList @('dist/server/server.js') -WorkingDirectory $project -WindowStyle Hidden -RedirectStandardOutput (Join-Path $runtime 'server.log') -RedirectStandardError (Join-Path $runtime 'server-error.log')
+    Start-Process -FilePath 'powershell.exe' -ArgumentList @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', (Join-Path $project 'Run-Agent-Frontdesk-Server.ps1')) -WorkingDirectory $project -WindowStyle Hidden
     $running = Wait-Frontdesk 40
   }
 }
